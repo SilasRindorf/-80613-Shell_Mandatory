@@ -6,21 +6,42 @@
 #include <limits.h>
 
 void runCommand(char input[]){
+    //Array is always a min of 1 char to indicate end of array
+    int count = 1;
     for (int i=0; i < strlen(input); i++){
-        if(input[i] == '\n')
+        if(input[i] == ' '){
+            count++;
+        }
+        else if(input[i] == '\n')
             input[i] = NULL;
     }
-    printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),input);
+    char *nargs[count];
+    nargs[count] = NULL;
+    count = 0;
+    nargs[count] = strtok(input," ");
+    count++;
+    while (nargs[count] != NULL)
+    {
+        nargs[count] = strtok (NULL, " ");
+        count++;
+    }
+    count = 1;
+    printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),nargs[0]);
+    while (nargs[count] != NULL){
+        printf("\tArgument %d=%s\n",count,nargs[count]);
+        count++;
+    }
+
     int rc = fork();
     if (rc < 0){
         fprintf(stderr, "fork failed\n");
         exit(1);
     } else if (rc == 0){
-        char *nargs[2];
-        //nargs[0] = strdup(input[0] + input[1]);
-        nargs[0] = strdup(input);
-        nargs[1] = NULL;
+
+        /*nargs[0] = strdup(input);
+        nargs[count++] = NULL;*/
         execvp(nargs[0],nargs);
+        //Does not execute and should not
         printf("I am the child process with pid=%d!\n", getpid());
 
     } else {
