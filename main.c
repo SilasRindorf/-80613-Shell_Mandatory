@@ -8,43 +8,53 @@
 void runCommand(char input[]){
     //Array is always a min of 1 char to indicate end of array
     int count = 1;
+    //Count how many arguments
     for (int i=0; i < strlen(input); i++){
         if(input[i] == ' '){
             count++;
         }
+        //Remove non argument char
         else if(input[i] == '\n')
             input[i] = NULL;
     }
     char *nargs[count];
+    //Last pos is NULL to indicate end of array
+    //Since it's a pointer array
     nargs[count] = NULL;
+    //Reuse counter
     count = 0;
+    //Convert to pointer array
     nargs[count] = strtok(input," ");
     count++;
+    //When we hit end of array
     while (nargs[count] != NULL)
     {
         nargs[count] = strtok (NULL, " ");
         count++;
     }
     count = 1;
+    //Prints and should print, status message
     printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),nargs[0]);
+
+    //Print argument temp print
     while (nargs[count] != NULL){
         printf("\tArgument %d=%s\n",count,nargs[count]);
         count++;
     }
 
+    //Create child process
     int rc = fork();
+    //Fork-ing failed
     if (rc < 0){
         fprintf(stderr, "fork failed\n");
         exit(1);
-    } else if (rc == 0){
-
-        /*nargs[0] = strdup(input);
-        nargs[count++] = NULL;*/
+    } else if (rc == 0){ // Child process creation succeeded
+        //Execute command, first argument is the command to be executed, 2nd argument is arguments for the command being executed
         execvp(nargs[0],nargs);
         //Does not execute and should not
         printf("I am the child process with pid=%d!\n", getpid());
 
-    } else {
+    } else { //Child returns to parent
         int wc = wait(NULL);
         printf("I am the parent process of %d. I have pid=%d\n",rc, getpid());
     }
@@ -56,12 +66,14 @@ void runCommand(char input[]){
 int main() {
     char input[36];
     do {
+        //Get input
         char cwd[PATH_MAX];
         if (getcwd(cwd, sizeof(cwd)) != NULL) {
             printf("%s $ ", cwd);
             fgets(input,36, stdin);
+            //Run our method
             runCommand(input);
-        } else {
+        } else { //Read error
             perror("getcwd() error");
             return 1;
         }
