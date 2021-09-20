@@ -5,15 +5,20 @@
 #include <string.h>
 #include <limits.h>
 
-void runCommand(char input[36]){
-    printf("Parent process booting up with pid=%d!\n",getpid());
+void runCommand(char input[]){
+    for (int i=0; i < strlen(input); i++){
+        if(input[i] == '\n')
+            input[i] = NULL;
+    }
+    printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),input);
     int rc = fork();
     if (rc < 0){
         fprintf(stderr, "fork failed\n");
         exit(1);
     } else if (rc == 0){
         char *nargs[2];
-        nargs[0] = strdup("ls");
+        //nargs[0] = strdup(input[0] + input[1]);
+        nargs[0] = strdup(input);
         nargs[1] = NULL;
         execvp(nargs[0],nargs);
         printf("I am the child process with pid=%d!\n", getpid());
