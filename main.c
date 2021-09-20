@@ -5,7 +5,15 @@
 #include <string.h>
 #include <limits.h>
 
-void runCommand(char input[]){
+
+/*
+ *
+ *
+ *
+ *
+ *
+*/
+ void runCommand(char input[]){
     //Array is always a min of 1 char to indicate end of array
     int count = 1;
     //Count how many arguments
