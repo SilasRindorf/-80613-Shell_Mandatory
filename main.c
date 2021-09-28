@@ -48,7 +48,7 @@ int main() {
         int k = 0;
         printf("\tSep: \n");
         /**
-         * This while loop splits from '|', so
+         * This while loop splits from ' ', so
          * w " "
          * s
          */
@@ -62,12 +62,6 @@ int main() {
 
             k++;
         }
-
-
-
-
-
-
         i++;
     }
 
