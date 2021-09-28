@@ -23,7 +23,13 @@ void runCommand(char input[]) {
         else if (input[i] == '\n')
             input[i] = NULL;
     }
-    char *nargs[1][count];
+    int pipeLength = 0;
+    for (int i = 0; sizeof(input) > i; i++){
+        if (input[i] == '|'){
+            pipeLength++;
+        }
+    }
+    char *nargs[pipeLength][count];
     //Last pos is NULL to indicate end of array
     //Since it's a pointer array
     nargs[0][count] = NULL;
