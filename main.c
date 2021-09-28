@@ -5,14 +5,15 @@
 #include <limits.h>
 
 char *getInput(int size) {
-    char input[36];
+    char *input = malloc(size);
 
     //Get input
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
         printf("%s $ ", cwd);
-        fgets(input, 36, stdin);
+        fgets(input, size, stdin);
     }
+    return input;
 }
 
 
@@ -54,6 +55,7 @@ int main() {
          */
         while (sep[k] != NULL) {
             printf("\t\t%s\n", sep[k]);
+
             k++;
         }
         i++;
