@@ -19,11 +19,11 @@ char *getInput(int size) {
 char **splitString(char *array, char *delim) {
     int i = 0;
     char *p = strtok(array, delim);
-    char **newarray = malloc(32);
+    char **newarray = malloc(256);
 
     while (p != NULL) {
         newarray[i++] = p;
-        p = strtok(NULL, "|");
+        p = strtok(NULL, delim);
     }
 
     return newarray;
@@ -35,14 +35,42 @@ char **splitString(char *array, char *delim) {
  */
 int main() {
     //Split for multiple args
-    char **holder = splitString(getInput(32), "|");
-    //printf("Holder holds: %s", holder[0]);
-
+    char **holder = splitString(getInput(256), "|");
+    printf("Listing: \n");
     int i = 0;
+    /**
+     * This while loop splits from '|', so
+     * ls "|"
+     * ws
+     */
     while (holder[i] != NULL) {
-        printf("Holder holds: %s", holder[i]);
+        char ** sep = splitString(holder[i]," ");
+        int k = 0;
+        printf("\tSep: \n");
+        /**
+         * This while loop splits from '|', so
+         * w " "
+         * s
+         */
+        while (sep[k] != NULL) {
+            printf("\t\t%s\n", sep[k]);
+
+
+
+
+
+
+            k++;
+        }
+
+
+
+
+
+
         i++;
     }
+
 
 }
 
