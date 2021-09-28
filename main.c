@@ -158,7 +158,7 @@ int main() {
          * ls "|"
          * ws
          */
-        while (holder[i] != NULL) {
+      //  while (holder[i] != NULL) {
             char ** sep = splitString(holder[i]," ");
             int k = 0;
             printf("\tSep: \n");
@@ -179,7 +179,7 @@ int main() {
                 runPipeCommand(sep);
             }
             i++;
-    }
+  //  }
         if (i<-1){
             return 1;
         }
