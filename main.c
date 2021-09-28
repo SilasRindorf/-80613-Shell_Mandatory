@@ -54,12 +54,6 @@ int main() {
          */
         while (sep[k] != NULL) {
             printf("\t\t%s\n", sep[k]);
-
-
-
-
-
-
             k++;
         }
         i++;
