@@ -23,6 +23,7 @@ void runCommand(char input[]) {
         else if (input[i] == '\n')
             input[i] = NULL;
     }
+    // For determining the pipelength
     int pipeLength = 0;
     for (int i = 0; sizeof(input) > i; i++){
         if (input[i] == '|'){
@@ -30,6 +31,16 @@ void runCommand(char input[]) {
         }
     }
     char *nargs[pipeLength][count];
+    // For splitting the nargs argument at the pipes, so the double array works in the way we like ??!?!?! O.o
+    for (int i = 0; pipeLength > i; i++) {
+        for (int j = 0; sizeof(input) > j; j++) {
+            if (input[i] == '|') {
+                nargs[i][j] = input[j];
+                input = remove(j);
+            }
+        }
+    }
+
     //Last pos is NULL to indicate end of array
     //Since it's a pointer array
     nargs[0][count] = NULL;
