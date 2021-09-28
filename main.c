@@ -5,9 +5,6 @@
 #include <limits.h>
 #include <sys/wait.h>
 
-void runSingleCommand(char **command);
-void runPipeCommand(char **pipeCommand);
-
 char *getInput(int size) {
     char *input = malloc(size);
 
@@ -30,53 +27,9 @@ char **splitString(char *array, char *delim) {
         newarray[i++] = p;
         p = strtok(NULL, delim);
     }
-    newarray[0][i+1] = NULL;
+    if (newarray[0][i+1] == '\n')
+        newarray[0][i+1] = NULL;
     return newarray;
-}
-
-/***
- *
- * @return
- */
-int main() {
-    //Split for multiple args
-    int pipesFound = 0;
-    char **holder = splitString(getInput(256), "|");
-    printf("Listing: \n");
-    int i = 0;
-    /**
-     * This while loop splits from '|', so
-     * ls "|"
-     * ws
-     */
-    while (holder[i] != NULL) {
-        char ** sep = splitString(holder[i]," ");
-        int k = 0;
-        printf("\tSep: \n");
-        /**
-         * This while loop splits from ' ', so
-         * w " "
-         * s
-         */
-        while (sep[k] != NULL) {
-            printf("\t\tsep with k=%d: ",k);
-            printf("%s\n", sep[k]);
-            k++;
-        }
-        runSingleCommand(sep);
-        i++;
-    }
-    /*for (int j = 0; j < sizeof(holder); ++j) {
-        if (holder[j] == '|'){
-            pipesFound++;
-        }
-    }
-    if (pipesFound == 0){
-        runSingleCommand(holder);
-    }
-    else if (pipesFound > 0){
-        runPipeCommand(holder);
-    }*/
 }
 void runSingleCommand(char **command) {
     printf("Command is: %s\n", command[0]);
@@ -86,13 +39,13 @@ void runSingleCommand(char **command) {
         fprintf(stderr, "Fork failed. \n");
         exit(1);
     }
-    // Child process creation succeeded
+        // Child process creation succeeded
     else if (rc == 0){
         execvp(&command[0][0],&command[0]);
         // Does not execute and should not
         printf("I am the child process with pid=%d\n", getpid());
     }
-    // Child returns to parent
+        // Child returns to parent
     else if (rc > 1){
         int vc = wait(NULL);
         printf("I am the parent process with pid=%d\n", rc, getpid());
@@ -131,4 +84,52 @@ void runPipeCommand(char **pipeCommand) {
             printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
 
     }
+}
+
+/***
+ *
+ * @return
+ */
+int main() {
+    //Split for multiple args
+    int pipesFound = 0;
+    do {
+        char **holder = splitString(getInput(256), "|");
+        printf("Listing: \n");
+        int i = 0;
+        /**
+         * This while loop splits from '|', so
+         * ls "|"
+         * ws
+         */
+        while (holder[i] != NULL) {
+            char ** sep = splitString(holder[i]," ");
+            int k = 0;
+            printf("\tSep: \n");
+            /**
+             * This while loop splits from ' ', so
+             * w " "
+             * s
+             */
+            while (sep[k] != NULL) {
+                printf("\t\tsep with k=%d: ",k);
+                printf("%s\n", sep[k]);
+                k++;
+            }
+            runSingleCommand(sep);
+            i++;
+    }
+
+    } while (1);
+    /*for (int j = 0; j < sizeof(holder); ++j) {
+        if (holder[j] == '|'){
+            pipesFound++;
+        }
+    }
+    if (pipesFound == 0){
+        runSingleCommand(holder);
+    }
+    else if (pipesFound > 0){
+        runPipeCommand(holder);
+    }*/
 }
