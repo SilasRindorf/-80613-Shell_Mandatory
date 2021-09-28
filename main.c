@@ -46,8 +46,6 @@ void runCommand(char input[]) {
             characterTemp = 0;
         }
     }
-
-
     //Last pos is NULL to indicate end of array
     //Since it's a pointer array
     nargs[0][count] = NULL;
