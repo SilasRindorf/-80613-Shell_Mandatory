@@ -5,7 +5,7 @@
 #include <string.h>
 #include <limits.h>
 
-void runCommand(char input[]){
+void runCommand(char input[]) {
     //Array is always a min of 1 char to indicate end of array
     int count = 1;
     int pipecheck = 0;
@@ -90,6 +90,7 @@ void runCommand(char input[]){
         }
     }
 }
+
 /***
  *
  * @return
@@ -102,7 +103,7 @@ int main() {
         char cwd[PATH_MAX];
         if (getcwd(cwd, sizeof(cwd)) != NULL) {
             printf("%s $ ", cwd);
-            fgets(input,36, stdin);
+            fgets(input, 36, stdin);
             //Run our method
             runCommand(input);
         } else { //Read error
@@ -113,54 +114,3 @@ int main() {
 
 }
 
-void runCommandWithPipe(char input[]) {
-    //Array is always a min of 1 char to indicate end of array
-    int count = 1;
-    int pipecheck = 0;
-
-    for (int i = 0; i < strlen(input); i++) {
-        if (input[i] == ' ') {
-            count++;
-        }
-            //Count how many arguments
-        else if (input[i] == '|') {
-            pipecheck = 1;
-            input[i] = NULL;
-        }
-            //Remove non argument char
-        else if (input[i] == '\n')
-            input[i] = NULL;
-    }
-    char *nargs[count];
-    //Last pos is NULL to indicate end of array
-    //Since it's a pointer array
-    nargs[count] = NULL;
-    //Reuse counter
-    count = 0;
-    //Convert to pointer array
-    nargs[count] = strtok(input, " ");
-    count++;
-    //When we hit end of array
-    while (nargs[count] != NULL) {
-        nargs[count] = strtok(NULL, " ");
-        count++;
-    }
-    count = 1;
-    //Prints and should print, status message
-    printf("Parent process booting up with pid=%d and command='%s'\n", getpid(), nargs[0]);
-
-    //Print argument temp print
-    while (nargs[count] != NULL) {
-        printf("\tArgument %d=%s\n", count, nargs[count]);
-        count++;
-    }
-
-
-    count = 0;
-    while(1){
-        if ((nargs[count] = "|" )&& (nargs[count+1] != NULL)){
-
-        }
-        count++;
-    }
-}
