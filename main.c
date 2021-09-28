@@ -4,7 +4,6 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/wait.h>
-
 char *getInput(int size) {
     char *input = malloc(size);
 
@@ -16,7 +15,6 @@ char *getInput(int size) {
     }
     return input;
 }
-
 int checkPipe(char *array){
     int pipes = 0;
         if (strchr( array, '|') != NULL){
@@ -25,7 +23,6 @@ int checkPipe(char *array){
         else pipes = 0;
         return pipes;
 }
-
 char **splitString(char *array, char *delim) {
     int i = 0;
     char *p = strtok(array, delim);
@@ -65,35 +62,47 @@ void runSingleCommand(char **command) {
 }
 void runPipeCommand(char **pipeCommand) {
     int pipefd[2];
-    int pid = fork();
-    char recv[32];
-    pipe(pipefd);
-    switch (pid) {
+    pid_t process1, process2;
+    if (pipe(pipefd) < 0){
+        printf("\nPiping failed.");
+        return;
+    }
+    process1 = fork();
+    switch(process1){
         case -1:
-            perror("fork");
-            exit(1);
-            // In child process
+            printf("\nForking failed.");
+            return;
         case 0:
             // Close reading pipefd
             close(pipefd[0]);
-            // Open pipe as stream for writing
-            FILE *out = fdopen(pipefd[1], "w");
-            // Write to stream
-            fprintf(out, "This is a message to the stream from childpid:%d\n", (int) getpid());
-            exit(0);
-            break;
-            // In parent process
-        default:
-            // Close writing pipefd
+            // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
+            dup2(pipefd[1],STDOUT_FILENO);
             close(pipefd[1]);
-            printf("Wait status: %d\n", wait(NULL));
-            printf("Read string: %s", recv);
-            // Open pipe as stream for reading
-            FILE *in = fdopen(pipefd[0], "r");
-            // Read from stream
-            fscanf(in, "%s", recv);
-            printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
-
+            if (execvp(pipeCommand[0], pipeCommand) < 0){
+                printf("\nExecution of first command failed.");
+                exit(0);
+            }
+        default:
+            process2 = fork();
+            switch (process2) {
+                case -1:
+                    printf("\nForking failed.");
+                    return;
+                case 0:
+                    close(pipefd[1]);
+                    // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
+                    dup2(pipefd[0],STDIN_FILENO);
+                    close(pipefd[0]);
+                    if (execvp(pipeCommand[0], pipeCommand) < 0){
+                        printf("\nExecution of second command failed.");
+                        exit(0);
+                    }
+                default:
+                    printf("\nWe are your processes and pipes: %d", process1, process2, pipefd);
+                    wait(NULL);
+                    wait(NULL);
+            }
+            break;
     }
 }
 void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
@@ -110,8 +119,9 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
     if (process1 == 0 ) {
         close(pipefd[0]);
         // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
-        FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
-        // dup2(pipefd[1],STDOUT_FILENO);
+        // write(pipefd[1], pipeCommand[0], sizeof(pipeCommand[0]));
+        // FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
+        dup2(pipefd[1],STDOUT_FILENO);
         close(pipefd[1]);
 
         printf("\nExecution of first command did stuffs.");
@@ -126,6 +136,7 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
         }
         if (process2 == 0){
             close(pipefd[1]);
+            //read(pipefd[0],pipeCommand, sizeof(pipeCommand));
             // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
             dup2(pipefd[0],STDIN_FILENO);
             close(pipefd[0]);
@@ -134,6 +145,7 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
                 exit(0);
             }
         } else {
+            printf("\nWe are your processes and pipes: %d", process1, process2, pipefd);
             wait(NULL);
             wait(NULL);
         }
