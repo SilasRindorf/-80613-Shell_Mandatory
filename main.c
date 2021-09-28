@@ -17,7 +17,6 @@ char *getInput(int size) {
     return input;
 }
 
-
 char **splitString(char *array, char *delim) {
     int i = 0;
     char *p = strtok(array, delim);
@@ -27,8 +26,12 @@ char **splitString(char *array, char *delim) {
         newarray[i++] = p;
         p = strtok(NULL, delim);
     }
-    if (newarray[0][i+1] == '\n')
-        newarray[0][i+1] = NULL;
+    for (int j = 0; j < 256; ++j) {
+        if(newarray[0][j] == '\n'){
+            newarray[0][j] = NULL;
+            break;
+        }
+    }
     return newarray;
 }
 void runSingleCommand(char **command) {
@@ -121,6 +124,9 @@ int main() {
             runSingleCommand(sep);
             i++;
     }
+        if (i<-1){
+            return 1;
+        }
 
     } while (1);
 #pragma clang diagnostic pop
