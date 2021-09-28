@@ -1,0 +1,14 @@
+//
+// Created by s195481 on 9/28/21.
+//
+
+#ifndef SHELL_MANDATORY_PAINISTHENEWMAIN_H
+#define SHELL_MANDATORY_PAINISTHENEWMAIN_H
+
+
+class painIsTheNewMain{
+
+};
+
+
+#endif //SHELL_MANDATORY_PAINISTHENEWMAIN_H

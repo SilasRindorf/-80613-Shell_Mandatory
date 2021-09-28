@@ -69,12 +69,21 @@ char *runCommand(char input[]) {
             int wc = wait(NULL);
             printf("I am the parent process of %d. I have pid=%d\n", rc, getpid());
         }
-    }
-    if (pipecheck == 1){
-        int pipefd[2], nbytes;
+
+        int pipefd[2];
         int pid = fork();
-        char recv[32];
+        char recv[sizeof(input)];
         pipe(pipefd);
+        if (pipecheck == 1){
+        for (int i = 0; sizeof(input) > i; i++){
+            if (input[i] != "|"){
+                char* leftPipe = leftPipe + input[i];
+            } else {
+                char* rightPipe =  rightPipe + input[i];
+            }
+            recv[i] = input[i];
+        }
+
         switch (pid) {
             case -1:
                 perror("fork");
@@ -90,18 +99,16 @@ char *runCommand(char input[]) {
             default:               // in parent process
                 close(pipefd[1]);        //close	writing	pipefd
                 ///* Read in a string from the pipe */
-                nbytes = read(pipefd[0], recv, sizeof(recv));
                 printf("Received string: %s", recv);
                 printf("Wait status: %d\n", wait(NULL));
                 printf("Read string: %s", recv);
                 FILE *in = fdopen(pipefd[0], "r"); // ope pipe as stream for reading
                 fscanf(in, "%s", recv); // write to stream
                 printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
-
         }
     }
-
 }
+
 
 /***
  *
