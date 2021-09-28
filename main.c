@@ -17,19 +17,36 @@ void runCommand(char input[]) {
             //Count how many arguments
         else if (input[i] == '|') {
             pipecheck = 1;
-            input[i] = NULL;
+            //input[i] = NULL;
         }
             //Remove non argument char
         else if (input[i] == '\n')
             input[i] = NULL;
     }
-    int pipeLength = 0;
+    // For determining the amount of pipes
+    int amountOfPipes = 0;
     for (int i = 0; sizeof(input) > i; i++){
         if (input[i] == '|'){
-            pipeLength++;
+            amountOfPipes++;
         }
     }
-    char *nargs[pipeLength][count];
+    char *nargs[amountOfPipes][count];
+    int pipeNumber = 0;
+    int characterTemp = 0;
+    // For splitting the nargs argument at the pipes, so the double array works in the way we like ??!?!?! O.o
+    // for example "ls -A | wc"
+    // nargs[0][0..4] == ls -A
+    // nargs[1][0..1] == wc
+    // split at every '|'
+    for (int i = 0; sizeof(input) > i; i++){
+        nargs[pipeNumber][characterTemp] = input[i];
+        characterTemp++;
+        if (input[i] == '|'){
+            pipeNumber++;
+            characterTemp = 0;
+        }
+    }
+
 
     //Last pos is NULL to indicate end of array
     //Since it's a pointer array
