@@ -64,9 +64,10 @@ int main() {
 
             k++;
         }
+        //runSingleCommand(sep);
         i++;
     }
-    for (int j = 0; j < sizeof(holder); ++j) {
+    /*for (int j = 0; j < sizeof(holder); ++j) {
         if (holder[j] == '|'){
             pipesFound++;
         }
@@ -76,7 +77,7 @@ int main() {
     }
     else if (pipesFound > 0){
         runPipeCommand(holder);
-    }
+    }*/
 }
 void runSingleCommand(char **command) {
     int pid = fork();
