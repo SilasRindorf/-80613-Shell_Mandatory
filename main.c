@@ -63,38 +63,98 @@ void runSingleCommand(char **command) {
         printf("I am the parent process with pid=%d\n", rc, getpid());
     }
 }
+void execArgsPiped(char** parsed, char** parsedpipe)
+{
+    // 0 is read end, 1 is write end
+    int pipefd[2];
+    pid_t p1, p2;
+    if (pipe(pipefd) < 0) {
+        printf("\nPipe could not be initialized");
+        return;
+    }
+    p1 = fork();
+    if (p1 < 0) {
+        printf("\nCould not fork");
+        return;
+    }
+    if (p1 == 0) {
+        // Child 1 executing..
+        // It only needs to write at the write end
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        if (execvp(parsed[0], parsed) < 0) {
+            printf("\nCould not execute command 1..");
+            exit(0);
+        }
+    } else {
+        // Parent executing
+        p2 = fork();
 
+        if (p2 < 0) {
+            printf("\nCould not fork");
+            return;
+        }
+
+        // Child 2 executing..
+        // It only needs to read at the read end
+        if (p2 == 0) {
+            close(pipefd[1]);
+            dup2(pipefd[0], STDIN_FILENO);
+            close(pipefd[0]);
+            if (execvp(parsedpipe[0], parsedpipe) < 0) {
+                printf("\nCould not execute command 2..");
+                exit(0);
+            }
+        } else {
+            // parent executing, waiting for two children
+            wait(NULL);
+            wait(NULL);
+        }
+    }
+}
 void runPipeCommand(char **pipeCommand) {
     int pipefd[2];
-    int pid = fork();
-    char recv[32];
-    pipe(pipefd);
-    switch (pid) {
+    pid_t process1, process2;
+    if (pipe(pipefd) < 0){
+        printf("\nPiping failed.");
+        return;
+    }
+    process1 = fork();
+    switch(process1){
         case -1:
-            perror("fork");
-            exit(1);
-            // In child process
+            printf("\nForking failed.");
+            return;
         case 0:
             // Close reading pipefd
             close(pipefd[0]);
-            // Open pipe as stream for writing
-            FILE *out = fdopen(pipefd[1], "w");
-            // Write to stream
-            fprintf(out, "This is a message to the stream from childpid:%d\n", (int) getpid());
-            exit(0);
-            break;
-            // In parent process
-        default:
-            // Close writing pipefd
+            // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
+            dup2(pipefd[1],STDOUT_FILENO);
             close(pipefd[1]);
-            printf("Wait status: %d\n", wait(NULL));
-            printf("Read string: %s", recv);
-            // Open pipe as stream for reading
-            FILE *in = fdopen(pipefd[0], "r");
-            // Read from stream
-            fscanf(in, "%s", recv);
-            printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
-
+            if (execvp(pipeCommand[0], pipeCommand) < 0){
+                printf("\nExecution of first command failed.");
+                exit(0);
+            }
+        default:
+            process2 = fork();
+            switch (process2) {
+                case -1:
+                    printf("\nForking failed.");
+                    return;
+                case 0:
+                    close(pipefd[1]);
+                    // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
+                    dup2(pipefd[0],STDOUT_FILENO);
+                    close(pipefd[0]);
+                    if (execvp(pipeCommand[0], pipeCommand) < 0){
+                        printf("\nExecution of second command failed.");
+                        exit(0);
+                    }
+                default:
+                    wait(NULL);
+                    wait(NULL);
+            }
+            break;
     }
 }
 
