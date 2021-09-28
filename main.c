@@ -46,7 +46,13 @@ char *runCommand(char input[]) {
         printf("\tArgument %d=%s\n", count, nargs[count]);
         count++;
     }
-    if (pipecheck == 0) {
+    if (pipecheck == 0)
+        for (int i = 0; sizeof(input) > i; i++) {
+            if (input == "|") {
+                pipecheck = 1;
+            }
+        }
+
         //Create child process
         int rc = fork();
         //Fork-ing failed
@@ -63,8 +69,9 @@ char *runCommand(char input[]) {
             int wc = wait(NULL);
             printf("I am the parent process of %d. I have pid=%d\n", rc, getpid());
         }
-    } else {
-        int pipefd[2];
+    }
+    if (pipecheck == 1){
+        int pipefd[2], nbytes;
         int pid = fork();
         char recv[32];
         pipe(pipefd);
@@ -75,12 +82,16 @@ char *runCommand(char input[]) {
 
             case 0:    // in child process
                 close(pipefd[0]);       //close reading pipefd
+                //write(fd[1], string, (strlen(string)+1));
                 FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
                 fprintf(out, "Howyoudoing(childpid:%d)\n", (int) getpid()); // write to stream
                 exit(0);
                 break;
             default:               // in parent process
                 close(pipefd[1]);        //close	writing	pipefd
+                ///* Read in a string from the pipe */
+                nbytes = read(pipefd[0], recv, sizeof(recv));
+                printf("Received string: %s", recv);
                 printf("Wait status: %d\n", wait(NULL));
                 printf("Read string: %s", recv);
                 FILE *in = fdopen(pipefd[0], "r"); // ope pipe as stream for reading
