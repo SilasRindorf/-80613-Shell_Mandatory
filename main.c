@@ -96,6 +96,8 @@ void runPipeCommand(char **pipeCommand) {
 int main() {
     //Split for multiple args
     int pipesFound = 0;
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     do {
         char **holder = splitString(getInput(256), "|");
         printf("Listing: \n");
@@ -127,6 +129,7 @@ int main() {
         }
 
     } while (1);
+#pragma clang diagnostic pop
     /*for (int j = 0; j < sizeof(holder); ++j) {
         if (holder[j] == '|'){
             pipesFound++;
