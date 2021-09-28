@@ -61,10 +61,9 @@ int main() {
          */
         while (sep[k] != NULL) {
             printf("\t\t%s\n", sep[k]);
-
             k++;
         }
-        //runSingleCommand(sep);
+        runSingleCommand(sep);
         i++;
     }
     /*for (int j = 0; j < sizeof(holder); ++j) {
@@ -80,20 +79,23 @@ int main() {
     }*/
 }
 void runSingleCommand(char **command) {
-    int pid = fork();
+    printf("Command is: %s\n", command[0]);
+    int rc = fork();
     // If forking failed
-    if (pid < 0){
+    if (rc < 0){
         fprintf(stderr, "Fork failed. \n");
         exit(1);
     }
-        // Child process creation succeeded
-    else if (pid == 0){
-        execvp(command[0],command);
+    // Child process creation succeeded
+    else if (rc == 0){
+        execvp(&command[0][0],&command[0]);
+        // Does not execute and should not
         printf("I am the child process with pid=%d\n", getpid());
     }
-        // Child returns to parent
-    else if (pid > 1){
-        printf("I am the parent process with pid=%d\n", pid, getpid());
+    // Child returns to parent
+    else if (rc > 1){
+        int vc = wait(NULL);
+        printf("I am the parent process with pid=%d\n", rc, getpid());
     }
 }
 
