@@ -5,6 +5,8 @@
 #include <limits.h>
 #include <sys/wait.h>
 
+void runSingleCommand(char **command);
+void runPipeCommand(char **pipeCommand);
 
 char *getInput(int size) {
     char *input = malloc(size);
@@ -28,7 +30,7 @@ char **splitString(char *array, char *delim) {
         newarray[i++] = p;
         p = strtok(NULL, delim);
     }
-    newarray[0][i] = NULL;
+    newarray[0][i+1] = NULL;
     return newarray;
 }
 
@@ -128,5 +130,5 @@ void runPipeCommand(char **pipeCommand) {
             fscanf(in, "%s", recv);
             printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
 
+    }
 }
-
