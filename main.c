@@ -4,7 +4,6 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/wait.h>
-
 char *getInput(int size) {
     char *input = malloc(size);
 
@@ -16,7 +15,6 @@ char *getInput(int size) {
     }
     return input;
 }
-
 int checkPipe(char *array){
     int pipes = 0;
         if (strchr( array, '|') != NULL){
@@ -25,7 +23,6 @@ int checkPipe(char *array){
         else pipes = 0;
         return pipes;
 }
-
 char **splitString(char *array, char *delim) {
     int i = 0;
     char *p = strtok(array, delim);
@@ -94,13 +91,14 @@ void runPipeCommand(char **pipeCommand) {
                 case 0:
                     close(pipefd[1]);
                     // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
-                    dup2(pipefd[0],STDOUT_FILENO);
+                    dup2(pipefd[0],STDIN_FILENO);
                     close(pipefd[0]);
                     if (execvp(pipeCommand[0], pipeCommand) < 0){
                         printf("\nExecution of second command failed.");
                         exit(0);
                     }
                 default:
+                    printf("\nWe are your processes and pipes: %d", process1, process2, pipefd);
                     wait(NULL);
                     wait(NULL);
             }
@@ -121,8 +119,9 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
     if (process1 == 0 ) {
         close(pipefd[0]);
         // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
-        FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
-        // dup2(pipefd[1],STDOUT_FILENO);
+        // write(pipefd[1], pipeCommand[0], sizeof(pipeCommand[0]));
+        // FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
+        dup2(pipefd[1],STDOUT_FILENO);
         close(pipefd[1]);
 
         printf("\nExecution of first command did stuffs.");
@@ -137,6 +136,7 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
         }
         if (process2 == 0){
             close(pipefd[1]);
+            //read(pipefd[0],pipeCommand, sizeof(pipeCommand));
             // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
             dup2(pipefd[0],STDIN_FILENO);
             close(pipefd[0]);
@@ -145,6 +145,7 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
                 exit(0);
             }
         } else {
+            printf("\nWe are your processes and pipes: %d", process1, process2, pipefd);
             wait(NULL);
             wait(NULL);
         }
