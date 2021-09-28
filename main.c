@@ -5,22 +5,7 @@
 #include <string.h>
 #include <limits.h>
 
-
-
-
-
-
-
 void runCommand(char input[]){
-
-
-
-    int pipefd[2];
-    int pid;
-    char recv[32];
-
-    pipe(pipefd);
-
     //Array is always a min of 1 char to indicate end of array
     int count = 1;
     //Count how many arguments
@@ -28,60 +13,34 @@ void runCommand(char input[]){
         if(input[i] == ' '){
             count++;
         }
-        //Remove non argument char
+            //Remove non argument char
         else if(input[i] == '\n')
             input[i] = NULL;
     }
-    char *nargs[count];
+    char *nargs[1][count];
     //Last pos is NULL to indicate end of array
     //Since it's a pointer array
-    nargs[count] = NULL;
+    nargs[0][count] = NULL;
     //Reuse counter
     count = 0;
     //Convert to pointer array
-    nargs[count] = strtok(input," ");
+    nargs[0][count] = strtok(input," ");
     count++;
     //When we hit end of array
-    while (nargs[count] != NULL)
+    while (nargs[0][count] != NULL)
     {
-        nargs[count] = strtok (NULL, " ");
+        nargs[0][count] = strtok (NULL, " ");
         count++;
     }
-    count = 1;
+    count = 0;
     //Prints and should print, status message
-    printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),nargs[0]);
+    printf("Parent process booting up with pid=%d and command='%s'\n",getpid(),nargs[0][0]);
 
     //Print argument temp print
-    while (nargs[count] != NULL){
-        printf("\tArgument %d=%s\n",count,nargs[count]);
+    while (nargs[0][count] != NULL){
+        printf("\tArgument %d=%s\n",count,nargs[0][count]);
         count++;
     }
-
-    /*
-
-    int pipefd[2];
-    int pid;
-    char recv[32];
-
-    pipe(pipefd);
-
-    switch(pid= fork()) {
-    case -1: perror("fork");
-	     exit(1);
-    case 0:    // in child process
-	    close(pipefd[0]);       //close reading pipefd
-	    FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
-	    fprintf (out, "Howyoudoing(childpid:%d)\n", (int) getpid()); // write to stream
-	    break;
-   default:               // in parent process
-	    close(pipefd[1]);      	//close	writing	pipefd
-        FILE *in = fdopen(pipefd[0], "r"); // ope pipe as stream for reading
-        fscanf	(in, "%s", recv); // write to stream
-        printf (" Hello parent (pid:%d) received %s\n",(int)getpid(), recv);
-	    break;
-     }
- */
-
 
     //Create child process
     int rc = fork();
@@ -90,26 +49,14 @@ void runCommand(char input[]){
         fprintf(stderr, "fork failed\n");
         exit(1);
     } else if (rc == 0){ // Child process creation succeeded
-
-        close(pipefd[0]);       //close reading pipefd
-        FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
-        fprintf (out, "Howyoudoing(childpid:%d)\n", (int) getpid()); // write to stream
-
         //Execute command, first argument is the command to be executed, 2nd argument is arguments for the command being executed
-        execvp(nargs[0],nargs);
+        execvp(nargs[0][0],nargs[0]);
         //Does not execute and should not
         printf("I am the child process with pid=%d!\n", getpid());
 
     } else { //Child returns to parent
-        //int wc = wait(NULL);
-
-        close(pipefd[1]);      	//close	writing	pipefd
-        FILE *in = fdopen(pipefd[0], "r"); // ope pipe as stream for reading
-        fscanf	(in, "%s", recv); // write to stream
-        printf (" Hello parent (pid:%d) received %s\n",(int)getpid(), recv);
-
-
-        //printf("I am the parent process of %d. I have pid=%d\n",rc, getpid());
+        int wc = wait(NULL);
+        printf("I am the parent process of %d. I have pid=%d\n",rc, getpid());
     }
 }
 /***
