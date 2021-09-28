@@ -26,7 +26,7 @@ char **splitString(char *array, char *delim) {
         newarray[i++] = p;
         p = strtok(NULL, delim);
     }
-
+    newarray[0][i] = NULL;
     return newarray;
 }
 
@@ -54,7 +54,8 @@ int main() {
          * s
          */
         while (sep[k] != NULL) {
-            printf("\t\t%s\n", sep[k]);
+            printf("\t\tsep with k=%d: ",k);
+            printf("%s\n", sep[k]);
 
             k++;
         }
