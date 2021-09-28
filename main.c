@@ -17,6 +17,15 @@ char *getInput(int size) {
     return input;
 }
 
+int checkPipe(char *array){
+    int pipes = 0;
+        if (strchr( array, '|') != NULL){
+            pipes = 1;
+        }
+        else pipes = 0;
+        return pipes;
+}
+
 char **splitString(char *array, char *delim) {
     int i = 0;
     char *p = strtok(array, delim);
@@ -96,10 +105,13 @@ void runPipeCommand(char **pipeCommand) {
 int main() {
     //Split for multiple args
     int pipesFound = 0;
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
+    char *tempchar;
     do {
-        char **holder = splitString(getInput(256), "|");
+        tempchar = getInput(256);
+        pipesFound = checkPipe(tempchar);
+        char **holder = splitString(tempchar, "|");
+        //  char **holder = splitString(getInput(256), "|");
+
         printf("Listing: \n");
         int i = 0;
         /**
@@ -121,7 +133,12 @@ int main() {
                 printf("%s\n", sep[k]);
                 k++;
             }
-            runSingleCommand(sep);
+            if(pipesFound == 0){
+                runSingleCommand(sep);
+            }
+            else{
+                runPipeCommand(sep);
+            }
             i++;
     }
         if (i<-1){
@@ -129,7 +146,6 @@ int main() {
         }
 
     } while (1);
-#pragma clang diagnostic pop
     /*for (int j = 0; j < sizeof(holder); ++j) {
         if (holder[j] == '|'){
             pipesFound++;
