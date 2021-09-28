@@ -117,7 +117,7 @@ void runCommand(char input[]) {
  *
  * @return
  */
-int main() {
+int main2() {
     char input[36];
     //Loop so on exit after excecution of command
     do {
