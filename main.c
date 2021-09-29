@@ -83,7 +83,7 @@ void runCommand(char input[]) {
 
         } else { //Child returns to parent
             int wc = wait(NULL);
-            printf("I am the parent process of %d. I have pid=%d\n", rc, getpid());
+            printf("I am the parent process of child pid %d. I have parent pid=%d\n", rc, getpid());
         }
     } else {
         int pipefd[2];
@@ -105,9 +105,11 @@ void runCommand(char input[]) {
                 close(pipefd[1]);        //close	writing	pipefd
                 printf("Wait status: %d\n", wait(NULL));
                 printf("Read string: %s", recv);
-                FILE *in = fdopen(pipefd[0], "r"); // ope pipe as stream for reading
+                FILE *in = fdopen(pipefd[0], "r"); // open pipe as stream for reading
                 fscanf(in, "%s", recv); // write to stream
                 printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv);
+                wait(NULL);
+                wait(NULL);
 
         }
     }
