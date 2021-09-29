@@ -47,6 +47,45 @@ char **splitString(char *array, char *delim) {
     return newarray;
 }
 
+void runSingleCommand2(char** command) {
+    // Forking a child
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        printf("\nFailed forking child 8=>");
+        return;
+    } else if (pid == 0) {
+        if (execvp(command[0], command) < 0) {
+            printf("\nCould not execute command");
+        }
+        exit(0);
+    } else {
+        // waiting for child to terminate
+        wait(NULL);
+        return;
+    }
+}
+void runSingleCommand(char **command) {
+    printf("Command is: %s\n", command[0]);
+    int rc = fork();
+    // If forking failed
+    if (rc < 0) {
+        fprintf(stderr, "Fork failed. \n");
+        exit(1);
+    }
+        // Child process creation succeeded
+    else if (rc == 0) {
+        execvp(&command[0][0], &command[0]);
+        // Does not execute and should not
+        printf("I am the child process with pid=%d\n", getpid());
+    }
+        // Child returns to parent
+    else if (rc > 1) {
+        int vc = wait(NULL);
+        printf("I am the parent process with pid=%d\n", rc, getpid());
+    }
+}
+
 /***
  *
  * @return
@@ -76,35 +115,15 @@ int main() {
                 printf("%s\n", sep[k]);
                 k++;
             }
+            sep[k-1] = NULL;
             //char *recv = runPipeCommand(sep);
-            runSingleCommand(sep);
+            runSingleCommand2(sep);
             i++;
             //piperering();
             //piperering(sep);
             //char *recv = getInput(256);
             //printf("in main recv=%s",recv);
         }
-    }
-}
-
-void runSingleCommand(char **command) {
-    printf("Command is: %s\n", command[0]);
-    int rc = fork();
-    // If forking failed
-    if (rc < 0) {
-        fprintf(stderr, "Fork failed. \n");
-        exit(1);
-    }
-        // Child process creation succeeded
-    else if (rc == 0) {
-        execvp(&command[0][0], &command[0]);
-        // Does not execute and should not
-        printf("I am the child process with pid=%d\n", getpid());
-    }
-        // Child returns to parent
-    else if (rc > 1) {
-        int vc = wait(NULL);
-        printf("I am the parent process with pid=%d\n", rc, getpid());
     }
 }
 
