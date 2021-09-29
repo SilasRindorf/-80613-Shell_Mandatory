@@ -120,7 +120,8 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
         close(pipefd[0]);
         // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
         // write(pipefd[1], pipeCommand[0], sizeof(pipeCommand[0]));
-        // FILE *out = fdopen(pipefd[1], "w"); // ope pipe as stream for writing
+        // FILE *out = fdopen(pipefd[1], "w"); // open pipe as stream for writing
+        //fdopen(pipefd[1],pipeCommand);
         dup2(pipefd[1],STDOUT_FILENO);
         close(pipefd[1]);
 
@@ -138,14 +139,14 @@ void runPipeCommandV2(char **pipeCommand, char **pipeCommand2) {
             close(pipefd[1]);
             //read(pipefd[0],pipeCommand, sizeof(pipeCommand));
             // Using "STDOUT_FILENO" as it is an integer file descriptor (actually, the integer 1)
-            dup2(pipefd[0],STDIN_FILENO);
+            fdopen(pipefd[0],pipeCommand);
+            //dup2(pipefd[0],STDIN_FILENO);
             close(pipefd[0]);
             if (execvp(pipeCommand2[0], pipeCommand2) < 0){
                 printf("\nExecution of second command failed.");
                 exit(0);
             }
         } else {
-            printf("\nWe are your processes and pipes: %d", process1, process2, pipefd);
             wait(NULL);
             wait(NULL);
         }
@@ -176,7 +177,47 @@ void runPipeCommandV3(char **pipeCommand){
 
     }
 }
+void runPipeCommandV4(int argc, char *pipeCommand[]){
+    {
+        int pipefd[2];
+        pid_t cpid;
+        char buf;
+        // Used for checking that the argument count does not equal 2 as it then can't be a pipe command e.g. "ls" "wc". There is always a right side and a left side of a pipe.
+        if (argc != 2) {
+            fprintf(stderr, "Usage: %s <string>\n", pipeCommand[0]);
+            exit(EXIT_FAILURE);
+        }
 
+        if (pipe(pipefd) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+
+        cpid = fork();
+        if (cpid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (cpid == 0) {    /* Child reads from pipe */
+            close(pipefd[1]);          /* Close unused write end */
+
+            while (read(pipefd[0], &buf, 1) > 0)
+                write(STDOUT_FILENO, &buf, 1);
+
+            write(STDOUT_FILENO, "\n", 1);
+            close(pipefd[0]);
+            _exit(EXIT_SUCCESS);
+
+        } else {            /* Parent writes argv[1] to pipe */
+            close(pipefd[0]);          /* Close unused read end */
+            write(pipefd[1], pipeCommand[1], strlen(pipeCommand[1]));
+            close(pipefd[1]);          /* Reader will see EOF */
+            wait(NULL);                /* Wait for child */
+            exit(EXIT_SUCCESS);
+        }
+    }
+}
 
 /***
  *
@@ -225,30 +266,17 @@ int main() {
                     printf("%s\n", sep2[v]);
                     v++;
             }
-
         }
             if(pipesFound == 0){
                 runSingleCommand(sep);
             }
             else{
-                runPipeCommandV2(sep, sep2);
+                //runPipeCommandV2(sep, sep2);
+                runPipeCommandV4(2,holder);
             }
             i++;
-  //  }
         if (i<-1){
             return 1;
         }
-
     } while (1);
-    /*for (int j = 0; j < sizeof(holder); ++j) {
-        if (holder[j] == '|'){
-            pipesFound++;
-        }
-    }
-    if (pipesFound == 0){
-        runSingleCommand(holder);
-    }
-    else if (pipesFound > 0){
-        runPipeCommand(holder);
-    }*/
 }
