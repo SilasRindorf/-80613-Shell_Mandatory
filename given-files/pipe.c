@@ -8,7 +8,6 @@
 #include <fcntl.h>
 
 char * piperering(char ** args){
-    printf("Entering\n");
     int pipefd[2];
     int pid;
     char recv[32];
@@ -28,9 +27,8 @@ char * piperering(char ** args){
             dup2(pipefd[0],0);
             close(pipefd[1]);
             execvp(&args[0][0],&args[0]);
-            // Write to stream
-            //fprintf(out, "howyoudoing(childpid:%d)\n", (int) getpid());
-            break;
+            //If execvp fails
+            exit(EXIT_FAILURE);
             // In parent process
         default:
             // Close writing pipefd
@@ -40,9 +38,8 @@ char * piperering(char ** args){
             // Read from stream
             //fscanf(in, "%s", recv2);
             //int re = open(recv2,O_WRONLY | O_APPEND);
-            dup2(pipefd[1],1);
+            waitpid(pid,NULL,0);
             close(pipefd[0]);
-            wait(NULL);
             printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv2);
             return recv2;
     }
