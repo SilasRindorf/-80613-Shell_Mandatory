@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <wait.h>
-#include <fcntl.h>
 
 char * piperering(char ** args){
     int pipefd[2];
@@ -21,9 +20,7 @@ char * piperering(char ** args){
             // In child process
         case 0:
             // Close reading pipefd
-            //close(pipefd[0]);
-            // Open pipe as stream for writing
-            //FILE *out = fdopen(pipefd[1], "w");
+
             dup2(pipefd[0],0);
             close(pipefd[1]);
             execvp(&args[0][0],&args[0]);
@@ -31,13 +28,7 @@ char * piperering(char ** args){
             exit(EXIT_FAILURE);
             // In parent process
         default:
-            // Close writing pipefd
-            //close(pipefd[1]);
-            // Open pipe as stream for reading
-            //FILE *in = fdopen(pipefd[0], "r");
-            // Read from stream
-            //fscanf(in, "%s", recv2);
-            //int re = open(recv2,O_WRONLY | O_APPEND);
+
             waitpid(pid,NULL,0);
             close(pipefd[0]);
             printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv2);
