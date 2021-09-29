@@ -5,12 +5,6 @@
 #include <limits.h>
 #include <sys/wait.h>
 
-void runSingleCommand(char **command);
-
-char *runPipeCommand(char **pipeCommand);
-
-void piperering(char **args);
-
 char *getInput(int size) {
     char *input = malloc(size);
 
@@ -26,8 +20,6 @@ char *getInput(int size) {
     }
     return input;
 }
-
-
 char **splitString(char *array, char *delim) {
     char **res = NULL;
 
@@ -71,17 +63,35 @@ char **splitString(char *array, char *delim) {
     return newarray;
      */
 }
-
-void piperering(char **args) {
+void runSingleCommand(char **command) {
+    printf("Command is: %s\n", command[0]);
+    int rc = fork();
+    // If forking failed
+    if (rc < 0) {
+        fprintf(stderr, "Fork failed. \n");
+        exit(1);
+    }
+        // Child process creation succeeded
+    else if (rc == 0) {
+        execvp(&command[0][0], &command[0]);
+        // Does not execute and should not
+        printf("I am the child process with pid=%d\n", getpid());
+    }
+        // Child returns to parent
+    else if (rc > 1) {
+        wait(NULL);
+        printf("I am the parent process with pid=%d\n", rc, getpid());
+    }
+}
+void runPipeCommand(char **pipeCommand) {
     int pipefd[2];
     int pid;
     char recv[32];
     char *recv2 = malloc(32);
     int fdin = 0;
 
-    while (*args != NULL) {
-        char **arg = splitString(args[0], " ");
-
+    while (*pipeCommand != NULL) {
+        char **arg = splitString(pipeCommand[0], " ");
         pipe(pipefd);
         switch (pid = fork()) {
             case -1:
@@ -92,16 +102,15 @@ void piperering(char **args) {
                 // Close reading pipefd
 
                 dup2(fdin, STDIN_FILENO);
-                if (*(args + 1) != NULL)                    // if we're not executing the last command,
+                if (*(pipeCommand + 1) != NULL)                    // if we're not executing the last command,
                     dup2(pipefd[1], STDOUT_FILENO);
                 close(pipefd[0]);
-
+                printf(" Hello parent (pid:%d) and hallo child (pid:%d). Received: %s\n", getppid(), (int) getpid(), recv2);
                 execvp(arg[0], arg);
                 //If execvp fails
                 exit(EXIT_FAILURE);
                 // In parent process
             default:
-
                 waitpid(pid, NULL, 0);
                 //dup2(pipefd[1],0);
                 //  dup2(pipefd[0],IN);
@@ -113,14 +122,15 @@ void piperering(char **args) {
                         printf("Char=%c",buf);
                     }
                     */
-
-                printf(" Hello parent (pid:%d) received %s\n", (int) getpid(), recv2);
                 //     return recv2;
                 fdin = pipefd[0];
-                args++;
+                pipeCommand++;
         }
     }
 }
+
+
+
 
 /***
  *
@@ -140,48 +150,26 @@ int main() {
         while (holder[i] != NULL) {
             char **sep = splitString(holder[i], " ");
             int k = 0;
-            printf("\tSerperating: %s\n", holder[i]);
+            //printf("\tSerperating: %s\n", holder[i]);
             /**
              * This while loop splits from ' ', so
              * w " "
              * s
              */
             while (sep[k] != NULL) {
-                printf("\t\tsep with k=%d: ", k);
-                printf("%s\n", sep[k]);
+                //printf("\t\tsep with k=%d: ", k);
+                //printf("%s\n", sep[k]);
                 k++;
             }
-
 
             //char *recv = runPipeCommand(sep);
             // runSingleCommand(sep);
             i++;
             //piperering();
-            piperering(holder);
+            runPipeCommand(holder);
             //char *recv = getInput(256);
             //printf("in main recv=%s",recv);
         }
-    }
-}
-
-void runSingleCommand(char **command) {
-    printf("Command is: %s\n", command[0]);
-    int rc = fork();
-    // If forking failed
-    if (rc < 0) {
-        fprintf(stderr, "Fork failed. \n");
-        exit(1);
-    }
-        // Child process creation succeeded
-    else if (rc == 0) {
-        execvp(&command[0][0], &command[0]);
-        // Does not execute and should not
-        printf("I am the child process with pid=%d\n", getpid());
-    }
-        // Child returns to parent
-    else if (rc > 1) {
-        wait(NULL);
-        printf("I am the parent process with pid=%d\n", rc, getpid());
     }
 }
 
