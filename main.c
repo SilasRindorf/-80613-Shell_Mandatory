@@ -72,7 +72,8 @@ int main() {
         //runSingleCommand(sep);
         i++;
         //piperering();
-        char *recv = piperering(sep);
+        piperering(sep);
+        //char *recv = getInput(256);
         printf("in main recv=%s",recv);
     }
 
