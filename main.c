@@ -8,9 +8,11 @@
 
 #define WRITE_END 1
 #define READ_END 0
-
-void runSingleCommand(char **command);
-void runPipeCommand(char **pipeCommand);
+/**
+ * This function is used for getting the user inpud
+ * @param size is the size of the input in bytes. Is used for memory allocation.
+ * @return the input as a pointer array.
+ */
 char *getInput(int size) {
     char *input = malloc(size);
 
