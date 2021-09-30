@@ -64,16 +64,16 @@ int main() {
      * ls "|"
      * ws
      */
-     /*
-    while (holder[i] != NULL) {
-        char **sep = splitStringArray(holder[i], " ");
-        int k = 0;
-        printf("\tSerperating: %s\n", holder[i]);
-        /**
-         * This while loop splits from ' ', so
-         * w " "
-         * s
-         *//*
+    /*
+   while (holder[i] != NULL) {
+       char **sep = splitStringArray(holder[i], " ");
+       int k = 0;
+       printf("\tSerperating: %s\n", holder[i]);
+       /**
+        * This while loop splits from ' ', so
+        * w " "
+        * s
+        *//*
         while (sep[k] != NULL) {
             printf("\t\tsep with k=%d: ", k);
             printf("%s\n", sep[k]);
@@ -89,67 +89,63 @@ void runPipeCommand(char **pipeCommand) {
     int pipefd[2];
     pid_t cpid;
     char buf;
+    char *recv2 = malloc(32);
+    int fdin = 0;
 
     char * earg = malloc(256);
     int i = 0;
+    //while (*pipeCommand[i] != NULL) {
     while (pipeCommand[i] != NULL) {
         char **sep = splitStringArray(pipeCommand[i], " ");
         int k = 0;
-        printf("\ti=%i, serperating: %s\n", i,pipeCommand[i]);
-
-
-
+        //printf("\ti=%i, serperating: %s\n", i,pipeCommand[i]);
         /**
          * This while loop splits from ' ', so
          * w " "
          * s
          */
         while (sep[k] != NULL) {
-            printf("\t\tsep with k=%d: ", k);
-            printf("%s\n", sep[k]);
+            /*printf("\t\tsep with k=%d: ", k);
+            printf("%s\n", sep[k]);*/
             k++;
         }
-
-
         if (pipe(pipefd) == -1) {
             perror("pipe");
             exit(EXIT_FAILURE);
         }
-
         cpid = fork();
         if (cpid == -1) {
             perror("fork");
             exit(EXIT_FAILURE);
         }
-
         if (cpid == 0) {    /* Child write to pipe */
-            dup2(pipefd[WRITE_END], STDOUT_FILENO);
-            close(pipefd[WRITE_END]);          /* Close unused */
+            /*
+                dup2(pd[0], 0);
+                close(pd[0]);
+                close(pd[1]);
+                execlp("wc", "wc", "-l", (char *)NULL);
+                fprintf(stderr, "Failed to execute 'wc'\n");
+                exit(1);
+            */
+            dup2(fdin, STDIN_FILENO);
+            //dup2(pipefd[WRITE_END], STDIN_FILENO);
+            close(pipefd[WRITE_END]);
+            //if (*(pipeCommand[i] + 1) != NULL)                    // if we're not executing the last command,
+            //dup2(pipefd[0], STDOUT_FILENO);
+            printf("\nHello parent (pid:%d) and hallo child (pid:%d). \nCommand run: %s \nReceived: %s\n",
+                   getppid(), (int) getpid(), &sep[0][0],recv2);
             close(pipefd[READ_END]);
-            //write(pipefd[1], pipeCommand[1], strlen(pipeCommand[1]));
             execvp(&sep[0][0], &sep[0]);
-
+            exit(EXIT_FAILURE);
         } else {            /* Parent reads from pipe */
-            close(pipefd[WRITE_END]);          /* Close unused write end */
-            int j = 0;
-            while (read(pipefd[READ_END], &buf, 1) > 0){
-                //earg[j] = buf;
-                write(STDOUT_FILENO, &buf, 1);
-                //j++;
-            }
-
-            write(STDOUT_FILENO, "\n", 1);
-            close(pipefd[READ_END]);
+            close(pipefd[WRITE_END]);
             waitpid(cpid, NULL, 0);
-
+            fdin = pipefd[READ_END];
+            //close(pipefd[READ_END]);
+            //printf("fdin %s\n and recv2 %s", fdin, recv2);
         }
-
-
-
         i++;
     }
-
-
 }
 
 
