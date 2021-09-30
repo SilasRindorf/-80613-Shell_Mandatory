@@ -4,14 +4,14 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/wait.h>
-#include "given-files/pipe.h"
 
 #define WRITE_END 1
 #define READ_END 0
 
-void runSingleCommand(char **command);
 void runPipeCommand(char **pipeCommand);
+
 char *getInput(int size) {
+
     char *input = malloc(size);
 
     //Get input
@@ -43,8 +43,10 @@ char **splitStringArray(char *array, char *delim) {
  * @return
  */
 int main() {
-    char **holder = splitStringArray(getInput(256), "|");
-    runPipeCommand(holder);
+    while(1) {
+        char **holder = splitStringArray(getInput(256), "|");
+        runPipeCommand(holder);
+    }
 }
 
 void runPipeCommand(char **pipeCommand) {
@@ -101,7 +103,18 @@ void runPipeCommand(char **pipeCommand) {
 
         i++;
     }
-    printf("%s",earg);
+    if(i == 1){
+        printf("%s",earg);
+    }
+    else{
+        fp = fopen("test.txt", "r+");
+        char c[1000];
+        fscanf(fp,"%[^\n]",c);
+        fclose(fp);
+        printf("%s \n",c);
+    }
+
+
 }
 
 void runSingleCommand(char **command) {
