@@ -3,4 +3,4 @@ project(Shell_Mandatory C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Shell_Mandatory main.c oldMain.c oldMain.h given-files/pipe.c given-files/pipe.h given-files/pipebubbi.cpp given-files/pipebubbi.h)
+add_executable(Shell_Mandatory main.c oldMain.c oldMain.h given-files/pipe.c given-files/pipe.h)
