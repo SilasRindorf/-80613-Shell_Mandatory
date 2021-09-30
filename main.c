@@ -6,11 +6,14 @@
 #include <sys/wait.h>
 #include "given-files/pipe.h"
 
+#define WRITE_END 1
+#define READ_END 0
+
+
 void runSingleCommand(char **command);
 
-char *runPipeCommand(char **pipeCommand);
+void runPipeCommand(char **pipeCommand);
 
-char *piperering(char **args);
 
 char *getInput(int size) {
     char *input = malloc(size);
@@ -24,47 +27,132 @@ char *getInput(int size) {
     return input;
 }
 
-
-char **splitString(char *array, char *delim) {
+char **splitStringArray(char *array, char *delim) {
     int i = 0;
-    char *p = strtok(array, "\n");
-    p = strtok(p, delim);
+    char *p = strtok(array, delim);
     char **newarray = malloc(sizeof(array));
-
-    while (p) {
+    while (p != NULL) {
         newarray[i++] = p;
-        printf("Help=%li\n",strlen(p));
-        newarray[i] = realloc(newarray[i],sizeof(char*) * (strlen(p)-1));
-        //newarray[i][strlen(p)-1] = NULL;
+
         p = strtok(NULL, delim);
     }
-    //newarray = realloc(newarray, sizeof(char**) * (i+1));
-    /*int k = 0;
-    while (newarray[k] != NULL){
-        printf("Help=%li\n",(&newarray[k])[1] - newarray[k]);
-        k++;
-    }*/
+    int k = 0;
+    p = strtok(newarray[k], "\n");
+    while (p != NULL) {
+        newarray[k][strlen(p)] = '\0';
+        p = strtok(NULL, delim);
+    }
+
     return newarray;
 }
 
-void runSingleCommand2(char** command) {
-    // Forking a child
-    pid_t pid = fork();
+/***
+ *
+ * @return
+ */
+int main() {
 
-    if (pid == -1) {
-        printf("\nFailed forking child 8=>");
-        return;
-    } else if (pid == 0) {
-        if (execvp(command[0], command) < 0) {
-            printf("\nCould not execute command");
+
+    char **holder = splitStringArray(getInput(256), "|");
+    runPipeCommand(holder);
+
+
+    //Split for multiple args
+    //int i = 0;
+    /**
+     * This while loop splits from '|', so
+     * ls "|"
+     * ws
+     */
+     /*
+    while (holder[i] != NULL) {
+        char **sep = splitStringArray(holder[i], " ");
+        int k = 0;
+        printf("\tSerperating: %s\n", holder[i]);
+        /**
+         * This while loop splits from ' ', so
+         * w " "
+         * s
+         *//*
+        while (sep[k] != NULL) {
+            printf("\t\tsep with k=%d: ", k);
+            printf("%s\n", sep[k]);
+            k++;
         }
-        exit(0);
-    } else {
-        // waiting for child to terminate
-        wait(NULL);
-        return;
-    }
+        i++;
+    }*/
+
+
 }
+
+void runPipeCommand(char **pipeCommand) {
+    int pipefd[2];
+    pid_t cpid;
+    char buf;
+
+    char * earg = malloc(256);
+    int i = 0;
+    while (pipeCommand[i] != NULL) {
+        char **sep = splitStringArray(pipeCommand[i], " ");
+        int k = 0;
+        printf("\ti=%i, serperating: %s\n", i,pipeCommand[i]);
+
+
+
+        /**
+         * This while loop splits from ' ', so
+         * w " "
+         * s
+         */
+        while (sep[k] != NULL) {
+            printf("\t\tsep with k=%d: ", k);
+            printf("%s\n", sep[k]);
+            k++;
+        }
+
+
+        if (pipe(pipefd) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+
+        cpid = fork();
+        if (cpid == -1) {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (cpid == 0) {    /* Child write to pipe */
+            dup2(pipefd[WRITE_END], STDOUT_FILENO);
+            close(pipefd[WRITE_END]);          /* Close unused */
+            close(pipefd[READ_END]);
+            //write(pipefd[1], pipeCommand[1], strlen(pipeCommand[1]));
+            execvp(&sep[0][0], &sep[0]);
+
+        } else {            /* Parent reads from pipe */
+            close(pipefd[WRITE_END]);          /* Close unused write end */
+            int j = 0;
+            while (read(pipefd[READ_END], &buf, 1) > 0){
+                //earg[j] = buf;
+                write(STDOUT_FILENO, &buf, 1);
+                //j++;
+            }
+
+            write(STDOUT_FILENO, "\n", 1);
+            close(pipefd[READ_END]);
+            waitpid(cpid, NULL, 0);
+
+        }
+
+
+
+        i++;
+    }
+
+
+}
+
+
 void runSingleCommand(char **command) {
     printf("Command is: %s\n", command[0]);
     int rc = fork();
@@ -83,47 +171,6 @@ void runSingleCommand(char **command) {
     else if (rc > 1) {
         int vc = wait(NULL);
         printf("I am the parent process with pid=%d\n", rc, getpid());
-    }
-}
-
-/***
- *
- * @return
- */
-int main() {
-    while (1) {
-        //Split for multiple args
-        char **holder = splitString(getInput(256), "|");
-        int i = 0;
-        /**
-         * This while loop splits from '|', so
-         * ls "|"
-         * ws
-         */
-
-        while (holder[i] != NULL) {
-            char **sep = splitString(holder[i], " ");
-            int k = 0;
-            printf("\tSerperating: %s\n",holder[i]);
-            /**
-             * This while loop splits from ' ', so
-             * w " "
-             * s
-             */
-            while (sep[k] != NULL) {
-                printf("\t\tsep with k=%d: ",k);
-                printf("%s\n", sep[k]);
-                k++;
-            }
-            sep[k-1] = NULL;
-            //char *recv = runPipeCommand(sep);
-            runSingleCommand2(sep);
-            i++;
-            //piperering();
-            //piperering(sep);
-            //char *recv = getInput(256);
-            //printf("in main recv=%s",recv);
-        }
     }
 }
 
