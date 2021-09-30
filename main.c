@@ -134,7 +134,7 @@ void runPipeCommand(char **pipeCommand) {
 
 /***
  *
- * @return
+ * @return happiness if working
  */
 int main() {
     while (1) {
