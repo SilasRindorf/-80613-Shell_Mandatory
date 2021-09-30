@@ -48,10 +48,11 @@ int main() {
 }
 
 void runPipeCommand(char **pipeCommand) {
+    FILE *fp;
     int pipefd[2];
     pid_t cpid;
     char buf;
-
+    fp = fopen("test.txt", "w");
     char *earg = malloc(1024);
     int i = 0;
     while (pipeCommand[i] != NULL) {
@@ -68,9 +69,10 @@ void runPipeCommand(char **pipeCommand) {
             k++;
         }
         if (i != 0 ) {
-            sep[k] = earg;
-            sep[k][strlen(sep[k])] = '\0';
-            printf("new sep[k]=%s\n",sep[k]);
+            sep[k] = "test.txt";
+        //    sep[k] = earg;
+        //    sep[k][strlen(sep[k])] = '\0';
+        //    printf("new sep[k]=%s\n",sep[k]);
         }
         if (pipe(pipefd) == -1) {
             perror("pipe");
@@ -92,9 +94,14 @@ void runPipeCommand(char **pipeCommand) {
             waitpid(cpid, NULL, 0);
             read(pipefd[READ_END],earg,1024);
             close(pipefd[READ_END]);
+            fp = fopen("test.txt", "w");
+            fputs(earg,fp);
+            fclose(fp);
         }
+
         i++;
     }
+    printf("%s",earg);
 }
 
 void runSingleCommand(char **command) {
